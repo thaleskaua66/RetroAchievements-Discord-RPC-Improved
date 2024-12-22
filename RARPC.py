@@ -38,10 +38,13 @@ def get_release_year(release_date):
     tokens = release_date.split(' ')
     return tokens[len(tokens)-1]
 
-def update_presence(RPC, data, game_data, start_time, username, achievementData):
+def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername):
     completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
     year_of_release = get_release_year(game_data['Released'])
     details = f"{game_data['GameTitle']} ({year_of_release})"
+    largeImageHoverText = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achievements | {completionAchievement} %"
+    if(displayUsername):
+        largeImageHoverText += f"\nUsername: {username}"
     try:
         RPC.update(
             #state=game_data['GameTitle'],
@@ -50,7 +53,7 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData)
             start=start_time,
             large_image=f"https://media.retroachievements.org{game_data['GameIcon']}",
             # large_text=f"Released {game_data['Released']}, Developed by {game_data['Developer']}, Published by {game_data['Publisher']}",
-            large_text = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achievements | {completionAchievement} %\nUsername: {username}",
+            large_text = largeImageHoverText,
             small_image=sanitize_console_name(game_data['ConsoleName']),
             small_text=game_data['ConsoleName'],
             # buttons=[{"label": "View RA Profile", "url": f"https://retroachievements.org/user/{username}"}]
@@ -67,8 +70,9 @@ def setup_config():
     api = input()  
 
     data = "[DISCORD]\nusername = "+str(usr)+"\napi_key = "+str(api)+"\nclient_id = -1"
+    configuring = "\n\n[SETTINGS]\ndisplayUsername = True"
 
-    config_file.write(data)
+    config_file.write(data + configuring)
     config_file.close()
 
 def main():
@@ -86,6 +90,8 @@ def main():
     
     username = config.get('DISCORD', 'username')
     api_key = config.get('DISCORD', 'api_key')
+    displayUsername = config.getboolean('SETTINGS', 'displayUsername')
+
     client_id = config.get('DISCORD', 'client_id') if config.has_option('DISCORD', 'client_id') else "1249693940299333642"
     if(client_id == "-1"):
         client_id = "1249693940299333642"
@@ -133,7 +139,7 @@ def main():
             print("Game data: \n", game_data)
             print("Data: \n", data)
 
-        update_presence(RPC, data, game_data, start_time, username, achievementData)
+        update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername)
 
         # print(Fore.CYAN + f"Sleeping for {args.fetch} seconds...")
         time.sleep(args.fetch)
