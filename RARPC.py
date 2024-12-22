@@ -9,11 +9,12 @@ import requests
 import time
 import os.path
 import time
+import warnings
 
 global counter
 global RPC
 global rpcIsClosed
-global temp1, temp2, temp3
+global temp1, temp2
 global start_time
 
 init(autoreset=True)
@@ -59,7 +60,7 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData,
             # buttons=[{"label": "View RA Profile", "url": f"https://retroachievements.org/user/{username}"}]
         )
     except:
-        temp3 = 0
+        pass
         
 
 def setup_config():
@@ -113,6 +114,7 @@ def main():
 
     while True:
         # print(Fore.CYAN + f"Fetching {username}'s RetroAchievements activity...")
+        warnings.filterwarnings("ignore")
         data = get_data(profile_url)
 
         achievement_url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?z={username}&y={api_key}&u={username}&g={data['LastGameID']}"
@@ -149,7 +151,7 @@ def main():
         if(temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser']):
             counter = 0
 
-        if(counter >= 60 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
+        if(counter >= 1 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
             RPC.close()
             rpcIsClosed = True
             counter = 0
