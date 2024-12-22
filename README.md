@@ -1,4 +1,4 @@
-# RetroAchievements-Discord-Presence
+# RetroAchievements-Discord-Presence-Improved
 
 This is a simple that allows RetroAchievements rich presence to be tracked on discord's rich presence.
 
