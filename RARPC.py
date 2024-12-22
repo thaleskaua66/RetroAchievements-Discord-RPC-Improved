@@ -8,6 +8,13 @@ import re
 import requests
 import time
 import os.path
+import time
+
+global counter
+global RPC
+global rpcIsClosed
+global temp1, temp2, temp3
+global start_time
 
 init(autoreset=True)
 
@@ -31,19 +38,26 @@ def get_release_year(release_date):
     tokens = release_date.split(' ')
     return tokens[len(tokens)-1]
 
-def update_presence(RPC, data, game_data, start_time, username):
+def update_presence(RPC, data, game_data, start_time, username, achievementData):
+    completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
     year_of_release = get_release_year(game_data['Released'])
     details = f"{game_data['GameTitle']} ({year_of_release})"
-    RPC.update(
-        state=data["RichPresenceMsg"],
-        details=details,
-        start=start_time,
-        large_image="ra_logo",
-        large_text=f"Released {game_data['Released']}, Developed by {game_data['Developer']}, Published by {game_data['Publisher']}",
-        small_image=sanitize_console_name(game_data['ConsoleName']),
-        small_text=game_data['ConsoleName'],
-        buttons=[{"label": "View RA Profile", "url": f"https://retroachievements.org/user/{username}"}]
-    )
+    try:
+        RPC.update(
+            #state=game_data['GameTitle'],
+            details=game_data['Title'],
+            state=data['RichPresenceMsg'],
+            start=start_time,
+            large_image=f"https://media.retroachievements.org{game_data['GameIcon']}",
+            # large_text=f"Released {game_data['Released']}, Developed by {game_data['Developer']}, Published by {game_data['Publisher']}",
+            large_text = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achievements | {completionAchievement} %\nUsername: {username}",
+            small_image=sanitize_console_name(game_data['ConsoleName']),
+            small_text=game_data['ConsoleName'],
+            # buttons=[{"label": "View RA Profile", "url": f"https://retroachievements.org/user/{username}"}]
+        )
+    except:
+        temp3 = 0
+        
 
 def setup_config():
     config_file = open("config.ini","w")
@@ -58,6 +72,11 @@ def setup_config():
     config_file.close()
 
 def main():
+    counter = 0
+    rpcIsClosed = True
+    temp1 = "Nothing1"
+    temp2 = 0
+    start_time = int(time.time())
     if(os.path.exists('config.ini') == False):
         print(Fore.YELLOW + f"Config file not found. Running first time setup...")
         setup_config()
@@ -73,43 +92,74 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', action='store_true', help='Print debug information')
-    parser.add_argument('--fetch', type=int, default=30, help='Time to sleep before fetches in seconds')
+    parser.add_argument('--fetch', type=int, default=15, help='Time to sleep before fetches in seconds')
     args = parser.parse_args()
 
     profile_url = f"https://retroachievements.org/API/API_GetUserProfile.php?u={username}&y={api_key}&z={username}"
 
-    start_time = int(time.time())
+    # start_time = int(time.time())
 
     RPC = Presence(client_id)
     print(Fore.CYAN + "Connecting to Discord App...")
     RPC.connect()
+    rpcIsClosed = False
     print(Fore.MAGENTA + "Connected!")
 
     while True:
-        print(Fore.CYAN + f"Fetching {username}'s RetroAchievements activity...")
+        # print(Fore.CYAN + f"Fetching {username}'s RetroAchievements activity...")
         data = get_data(profile_url)
+
+        achievement_url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?z={username}&y={api_key}&u={username}&g={data['LastGameID']}"
+
+        achievementData = get_data(achievement_url)
         if data is None:
             break
 
-        print(Fore.MAGENTA + f"Result: {data['RichPresenceMsg']}")
+        # print(Fore.MAGENTA + f"Result: {data['RichPresenceMsg']}")
 
         game_params = f"?z={username}&y={api_key}&i={data['LastGameID']}"
+        # print("Last game ID is: ", data['LastGameID'])
         game_url = f"https://retroachievements.org/API/API_GetGame.php{game_params}"
-        print(Fore.CYAN + "Fetching game data...")
+        # print(Fore.CYAN + "Fetching game data...")
         game_data = get_data(game_url)
         if game_data is None:
             break
 
-        print(Fore.MAGENTA + f"Result: {game_data['GameTitle']}")
+        # print(Fore.MAGENTA + f"Result: {game_data['GameTitle']}")
 
         if args.debug:
             print(Fore.YELLOW + "Debug game data:")
             pprint(game_data)
+            print("Game data: \n", game_data)
+            print("Data: \n", data)
 
-        update_presence(RPC, data, game_data, start_time, username)
+        update_presence(RPC, data, game_data, start_time, username, achievementData)
 
-        print(Fore.CYAN + f"Sleeping for {args.fetch} seconds...")
+        # print(Fore.CYAN + f"Sleeping for {args.fetch} seconds...")
         time.sleep(args.fetch)
+
+        # checks if time is up, and nothing between the achievements and status gets changed
+
+        if(temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser']):
+            counter = 0
+
+        if(counter >= 60 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
+            RPC.close()
+            rpcIsClosed = True
+            counter = 0
+        
+        
+        # checks for no of achievements and status to connect to rcp againn
+        if(rpcIsClosed == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+            RPC.connect()
+            rpcIsClosed = False
+            start_time = int(time.time())
+
+        # Updates temps and counter
+        temp1 = data['RichPresenceMsg']
+        temp2 = achievementData['NumAwardedToUser']
+        counter += 1
+
 
 if __name__ == "__main__":
     main()
