@@ -35,4 +35,5 @@ This is a simple that allows RetroAchievements rich presence to be tracked on di
 - Optimized game status.
 
 ### Additional notes / Privacy concerns:
-- If ever you don't want your username to be displayed on your RP, just edit the `config.ini` file and turn the `displayUsername` to `false`. 
+1. If ever you don't want your username to be displayed on your RP, just edit the `config.ini` file and turn the `displayUsername` to `False`. By default, this is `True`. _Notice the capital letters in the True and False as wrong cases may result to an error._
+2. After this, you can just close the `run.bat` file and open it again for the changes to reflect. 
