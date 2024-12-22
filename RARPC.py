@@ -151,7 +151,7 @@ def main():
         if(temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser']):
             counter = 0
 
-        if(counter >= 60 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
+        if(counter >= 120 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
             RPC.close()
             rpcIsClosed = True
             counter = 0
