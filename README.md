@@ -6,18 +6,14 @@ This is a simple that allows RetroAchievements rich presence to be tracked on di
 
 1. Install Python.
 2. Run `cmd` and ensure that python is installed correctly by entering this command `py --version`.
-3. Run the command, `py -m pip install -r requirements.txt`. Make sure that you're running this command in the proper directory. 
+3. Run the command, `py -m pip install -r requirements.txt`. Make sure that you're running this command in this directory.
+4. Go to Discord > User Settings > Activity Privacy. Toggle on `Share your detected activity with others.`
+5. Run the `run.bat` file, enter your credentials, `username` and `api key` from RetroAchievements.
+
+After running the `run.bat` file, a `config.ini` file will be created in the same directory. The credentials that you've submitted are stored in this config file.
 
 ### Optional
 - Discord Application (https://discord.com/developers/applications/) [For the Discord Application ID]
-
-## Running the script / Instructions:
-
-1. Use the included `run.bat` file.
-2. During the first run, it will ask for your *Username* and *API KEY* (Both from RetroAchievements).
-3. After running the `run.bat` file, a `config.ini` file will be created in the same directory. 
-4. The credentials that you've submitted are stored in this config file. 
-5. Just use the `config.ini` file when modifying either of these credentials. 
 
 <hr>
 
