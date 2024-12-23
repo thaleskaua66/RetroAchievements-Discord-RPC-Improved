@@ -44,9 +44,9 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData,
     completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
     year_of_release = get_release_year(game_data['Released'])
     # details = f"{game_data['GameTitle']} ({year_of_release})"
-    largeImageHoverText = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achieved | {completionAchievement} %"
+    largeImageHoverText = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achieved🏆| {completionAchievement} %"
     if(displayUsername):
-        largeImageHoverText += f"\nUsername: {username}"
+        largeImageHoverText += f"\n👤Username: {username}"
     
     try:
         RPC.update(
