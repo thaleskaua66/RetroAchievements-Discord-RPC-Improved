@@ -4,7 +4,7 @@ This is a simple that allows RetroAchievements rich presence to be tracked on di
 
 ## Instructions
 
-1. Install Python.
+1. Install Python. _(It works currently at version 3.13.1)_
 2. Run `cmd` and ensure that python is installed correctly by entering this command `py --version`.
 3. Run the command, `py -m pip install -r requirements.txt`. Make sure that you're running this command in this directory.
 4. Go to Discord > User Settings > Activity Privacy. Toggle on `Share your detected activity with others.`
