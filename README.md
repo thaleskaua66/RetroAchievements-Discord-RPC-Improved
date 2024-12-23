@@ -2,17 +2,11 @@
 
 This is a simple that allows RetroAchievements rich presence to be tracked on discord's rich presence.
 
-## Requirements
+## Instructions
 
-- Python3
-- You can install dependencies with
-    ```
-    pip install -r requirements.txt
-    ```
-    - `requests` (https://pypi.org/project/requests/)
-    - `pypresence` (https://pypi.org/project/pypresence/)
-    - `colorama` (https://pypi.org/project/colorama/)
-    - `configparser` (https://pypi.org/project/configparser/)
+1. Install Python.
+2. Run `cmd` and ensure that python is installed correctly by entering this command `py --version`.
+3. Run the command, `py -m pip install -r requirements.txt`. Make sure that you're running this command in the proper directory. 
 
 ### Optional
 - Discord Application (https://discord.com/developers/applications/) [For the Discord Application ID]
