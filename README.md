@@ -17,15 +17,18 @@ After running the `run.bat` file, a `config.ini` file will be created in the sam
 
 <hr>
 
-## What's New? 
-- The game icon is now displayed on the Discord's RP.
-- Hovering over the game icon now displays the user's achievement status about the current game. _(e.g, 32 of 148 achievements | 21 %)_
-- The username is now also displayed below the current achievement status. Both of these could be seen by hovering on the game icon on Discord RP. _(Don't worry, I made an option to turn this off)_
-- Not having movements within the current game status for a certain period of time would lead to RP idling. This helps to prevent unintended up-counting of elapsed time.
-- Making movements that triggers the game status would display the Discord RP again.
+## Features:
+- The game icon is displayed on the Discord's RP.
+- The console currently being played is also displayed. 
+- Hovering over the game icon displays the user's achievement status about the current game. _(e.g, 32 of 148 achieved | 21 %)_
+- A first button that redirects to the user's RA profile. _(Don't worry, I made an option to turn this off)_
+- If the username display is turned off, the first button will have the link of the RetroAchievements website instead.
+- A second button that redirects to the current game info inside the RetroAchievements website. 
+- Not having updates within the current game status for a certain period of time would lead to RP idling. This helps to prevent unintended up-counting of elapsed time. _(Not fully functional yet)_
+- Making movements that triggers the game status would display the Discord RP again. _(Not fully functional yet)_
 - Optimized game title.
-- Optimized game status.
+- Optimized game status. 
 
 ### How to turn off username display?
-1. If ever you don't want your username to be displayed on your RP, just edit the `config.ini` file and modify the value inside the `displayUsername` to `False`. By default, this is `True`. _Notice the capital letters in the True and False as wrong cases may result to an error._
-2. After this, you can just close the `run.bat` file and open it again for the changes to reflect. 
+1. If ever you don't want your username to have a redirection button on your Discord RP, just edit the `config.ini` file and modify the value inside the `displayUsername` to `False`. By default, this is `True`. _Notice the capital letters in the True and False as wrong cases may result to an error._
+2. After this, you can just close the `run.bat` file and open it again to reflect changes. 
