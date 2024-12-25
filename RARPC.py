@@ -40,7 +40,7 @@ def get_release_year(release_date):
     tokens = release_date.split(' ')
     return tokens[len(tokens)-1]
 
-def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername):
+def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, lastGameID):
     completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
     year_of_release = get_release_year(game_data['Released'])
     # details = f"{game_data['GameTitle']} ({year_of_release})"
@@ -59,7 +59,7 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData,
             large_text = largeImageHoverText,
             small_image= consoleIcons.get(game_data['ConsoleID']),
             small_text=game_data['ConsoleName'],
-            # buttons=[{"label": "View RA Profile", "url": f"https://retroachievements.org/user/{username}"}]
+            buttons=[{"label": "Visit Profile", "url": f"https://retroachievements.org/user/{username}"}, {"label": "Game Info", "url": f"https://retroachievements.org/game/{lastGameID}"}]
         )
     except:
         pass
@@ -141,7 +141,7 @@ def main():
             print("Game data: \n", game_data)
             print("Data: \n", data)
 
-        update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername)
+        update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
 
         # print(Fore.CYAN + f"Sleeping for {args.fetch} seconds...")
         time.sleep(args.fetch)
