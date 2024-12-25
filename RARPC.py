@@ -41,12 +41,15 @@ def get_release_year(release_date):
     return tokens[len(tokens)-1]
 
 def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, lastGameID):
+    button1Link = None
     completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
-    year_of_release = get_release_year(game_data['Released'])
-    # details = f"{game_data['GameTitle']} ({year_of_release})"
     largeImageHoverText = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achieved🏆| {completionAchievement} %"
     if(displayUsername):
-        largeImageHoverText += f"\n👤Username: {username}"
+        button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{username}"}
+    else:
+        button1Link = {"label": "What is RetroAchievements❓", "url": "https://retroachievements.org"}
+    
+    button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{lastGameID}"}
     
     try:
         RPC.update(
@@ -59,7 +62,7 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData,
             large_text = largeImageHoverText,
             small_image= consoleIcons.get(game_data['ConsoleID']),
             small_text=game_data['ConsoleName'],
-            buttons=[{"label": "Visit Profile", "url": f"https://retroachievements.org/user/{username}"}, {"label": "Game Info", "url": f"https://retroachievements.org/game/{lastGameID}"}]
+            buttons=[button1Link, button2Link]
         )
     except:
         pass
