@@ -7,15 +7,18 @@ This is a simple that allows RetroAchievements rich presence to be tracked on di
 1. Install Python. _(It works currently at version 3.13.1)_
 2. Run `cmd` and ensure that python is installed correctly by entering this command `py --version`.
 3. Run the command, `py -m pip install -r requirements.txt`. Make sure that you're running this command in this directory.
-4. Go to Discord > User Settings > Activity Privacy. Toggle on `Share your detected activity with others.`
-5. Run the `run.bat` file, enter your credentials, `username` and `api key` from RetroAchievements.
+4. Open Discord App. (_NOTE: Discord App should always be opened first before running the `run.bat` file._)
+5. Go to Discord > User Settings > Activity Privacy. Toggle on `Share your detected activity with others.`
+6. Run the `run.bat` file, enter your credentials, `username` and `api key` from RetroAchievements.
 
 After running the `run.bat` file, a `config.ini` file will be created in the same directory. The credentials that you've submitted are stored in this config file.
 
-### Optional
-- Discord Application (https://discord.com/developers/applications/) [For the Discord Application ID]
-
-<hr>
+### If you want to run the batch file in the background:
+1. Run the `batRunner.vbs` file instead of the `run.bat`. _(You can only do this once you've configured your credentials and your rich presence works already.)_ Otherwise, run your `run.bat` file. 
+2. Since running the `batRunner.vbs` file makes the process not visible on the taskbar, you need to run the `batStopper.bat` to stop the rich presence from working. _(Otherwise, the other way is to stop `Python` from running on your task manager)_
+3. It is also possible to make the `batRunner.vbs` file to run as startup app.<br>
+   Make a shortcut of the file > Windows + R > Type `shell:startup`, then press Enter > Place the shortcut in this directory.<br><br>
+_Note: These functions are still under development and aren't fully functional yet. For some reasons, `bat` files are being terminated when running for a certain period of time without much processes happening._
 
 ## Features:
 - The game icon is displayed on the Discord's RP.
