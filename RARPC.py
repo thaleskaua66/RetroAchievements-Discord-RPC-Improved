@@ -19,6 +19,7 @@ global rpcIsOpen
 global temp1, temp2
 global start_time
 global countLimit
+global rpcInitialRun
 
 init(autoreset=True)
 
@@ -95,11 +96,12 @@ def setup_config():
 
 def main():
     # Global variables SET
-    counter = 120
+    counter = 0
     rpcIsOpen = False
     temp1 = None
     temp2 = None
     countLimit = 120
+    rpcInitialRun = True
 
     print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
 
@@ -167,17 +169,21 @@ def main():
             print("Data: \n", data)
 
         # Checks whether to show the presence or clear it
+        if(rpcInitialRun and counter >= 1 and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+            # print("Enters condition 0: Initial run and data has changed")
+            rpcInitialRun = False
+
         if(rpcIsOpen == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
             # print("Enters condition 1: RPC is open and data has changed")
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
             counter = 1
 
-        if(rpcIsOpen == False and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+        if(rpcIsOpen == False and rpcInitialRun == False and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
             # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
             start_time = int(time.time())
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+            rpcIsOpen = True 
             counter = 1
-            rpcIsOpen = True
         elif(rpcIsOpen == True and counter >= countLimit and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
             # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
             RPC.clear()
@@ -189,7 +195,7 @@ def main():
         temp2 = achievementData['NumAwardedToUser']
         counter += 1
 
-        time.sleep(args.fetch)
+        time.sleep(15)
         
 if __name__ == "__main__":
     main()
