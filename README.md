@@ -18,7 +18,7 @@ After running the `run.bat` file, a `config.ini` file will be created in the sam
 2. Since running the `batRunner.vbs` file makes the process not visible on the taskbar, you need to run the `batStopper.bat` to stop the rich presence from working. _(Otherwise, the other way is to stop `Python` from running on your task manager)_
 3. It is also possible to make the `batRunner.vbs` file to run as startup app.<br>
    Make a shortcut of the file > Windows + R > Type `shell:startup`, then press Enter > Place the shortcut in this directory.<br><br>
-_Note: These functions are still under development and aren't fully functional yet. For some reasons, `bat` files are being terminated when running for a certain period of time without much processes happening._
+_Note: This function is still under development and isn't fully functional yet. For some reasons, `bat` files are being terminated when running for a certain period of time without much processes happening._
 
 ## Features:
 - The game icon is displayed on the Discord's RP.
