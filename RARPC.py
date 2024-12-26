@@ -149,22 +149,22 @@ def main():
 
         # Checks whether to show the presence or clear it
         if(rpcIsOpen == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
-            print("Enters condition 1: RPC is open and data has changed")
+            # print("Enters condition 1: RPC is open and data has changed")
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
             counter = 1
 
         if(rpcIsOpen == False and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
-            print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
+            # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
             start_time = int(time.time())
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
             counter = 1
             rpcIsOpen = True
         elif(rpcIsOpen == True and counter >= countLimit and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
-            print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
+            # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
             RPC.clear()
             rpcIsOpen = False
 
-        print("At this point, counter is now: ", counter)
+        # print("At this point, counter is now: ", counter)
             
         temp1 = data['RichPresenceMsg']
         temp2 = achievementData['NumAwardedToUser']
