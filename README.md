@@ -24,8 +24,8 @@ After running the `run.bat` file, a `config.ini` file will be created in the sam
 - A first button that redirects to the user's RA profile. _(Don't worry, I made an option to turn this off)_
 - If the username display is turned off, the first button will have the link of the RetroAchievements website instead.
 - A second button that redirects to the current game info inside the RetroAchievements website. 
-- Not having updates within the current game status for a certain period of time would lead to RP idling. This helps to prevent unintended up-counting of elapsed time. _(Not fully functional yet)_
-- Making movements that triggers the game status would display the Discord RP again. _(Not fully functional yet)_
+- Not having updates within the current game status for a certain period of time would lead to RP idling. This helps to prevent unintended up-counting of elapsed time. 
+- Making movements that triggers the game status would display the Discord RP again.
 - Optimized game title.
 - Optimized game status. 
 
