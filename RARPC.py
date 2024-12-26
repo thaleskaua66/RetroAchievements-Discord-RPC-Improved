@@ -14,9 +14,10 @@ from allSystems import consoleIcons
 
 global counter
 global RPC
-global rpcIsClosed
+global rpcIsOpen
 global temp1, temp2
 global start_time
+global countLimit
 
 init(autoreset=True)
 
@@ -82,11 +83,13 @@ def setup_config():
     config_file.close()
 
 def main():
-    counter = 0
-    rpcIsClosed = True
-    temp1 = "Nothing1"
-    temp2 = 0
-    start_time = int(time.time())
+    # Global variables SET
+    counter = 1
+    rpcIsOpen = False
+    temp1 = None
+    temp2 = None
+    countLimit = 4
+
     if(os.path.exists('config.ini') == False):
         print(Fore.YELLOW + f"Config file not found. Running first time setup...")
         setup_config()
@@ -112,8 +115,8 @@ def main():
     RPC = Presence(client_id)
     print(Fore.CYAN + "Connecting to Discord App...")
     RPC.connect()
-    rpcIsClosed = False
     print(Fore.MAGENTA + "Connected!")
+    start_time = int(time.time())
 
     while True:
         # print(Fore.CYAN + f"Fetching {username}'s RetroAchievements activity...")
@@ -144,33 +147,30 @@ def main():
             print("Game data: \n", game_data)
             print("Data: \n", data)
 
-        update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+        # Checks whether to show the presence or clear it
+        if(rpcIsOpen == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+            print("Enters condition 1: RPC is open and data has changed")
+            update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+            counter = 1
 
-        # print(Fore.CYAN + f"Sleeping for {args.fetch} seconds...")
-        time.sleep(args.fetch)
-
-        # checks if time is up, and nothing between the achievements and status gets changed
-
-        if(temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser']):
-            counter = 0
-
-        if(counter >= 120 and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
-            RPC.close()
-            rpcIsClosed = True
-            counter = 0
-        
-        
-        # checks for no of achievements and status to connect to rcp againn
-        if(rpcIsClosed == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
-            RPC.connect()
-            rpcIsClosed = False
+        if(rpcIsOpen == False and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+            print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
             start_time = int(time.time())
+            update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+            counter = 1
+            rpcIsOpen = True
+        elif(rpcIsOpen == True and counter >= countLimit and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
+            print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
+            RPC.clear()
+            rpcIsOpen = False
 
-        # Updates temps and counter
+        print("At this point, counter is now: ", counter)
+            
         temp1 = data['RichPresenceMsg']
         temp2 = achievementData['NumAwardedToUser']
         counter += 1
 
-
+        time.sleep(args.fetch)
+        
 if __name__ == "__main__":
     main()
