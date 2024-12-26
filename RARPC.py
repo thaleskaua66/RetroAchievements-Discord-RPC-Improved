@@ -88,7 +88,7 @@ def main():
     rpcIsOpen = False
     temp1 = None
     temp2 = None
-    countLimit = 4
+    countLimit = 120
 
     if(os.path.exists('config.ini') == False):
         print(Fore.YELLOW + f"Config file not found. Running first time setup...")
@@ -110,7 +110,6 @@ def main():
 
     profile_url = f"https://retroachievements.org/API/API_GetUserProfile.php?u={username}&y={api_key}&z={username}"
 
-    # start_time = int(time.time())
 
     RPC = Presence(client_id)
     print(Fore.CYAN + "Connecting to Discord App...")
