@@ -95,11 +95,13 @@ def setup_config():
 
 def main():
     # Global variables SET
-    counter = 1
+    counter = 120
     rpcIsOpen = False
     temp1 = None
     temp2 = None
     countLimit = 120
+
+    print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
 
     if(os.path.exists('config.ini') == False):
         print(Fore.YELLOW + f"Config file not found. Running first time setup...")
@@ -123,7 +125,6 @@ def main():
 
 
     RPC = Presence(client_id)
-    print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
     print(Fore.CYAN + "Connecting to Discord App...")
 
     while(isDiscordRunning() == False):
