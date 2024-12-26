@@ -11,6 +11,7 @@ import os.path
 import time
 import warnings
 from allSystems import consoleIcons
+import psutil
 
 global counter
 global RPC
@@ -41,6 +42,15 @@ def get_release_year(release_date):
     tokens = release_date.split(' ')
     return tokens[len(tokens)-1]
 
+def isDiscordRunning():
+    # Check if discord.exe is in the list of running processes
+    for proc in psutil.process_iter(['name']):
+        if 'discord.exe' in proc.info['name'].lower():
+            print(Fore.GREEN + "Discord is running.")
+            return True
+    print(Fore.RED + "Discord is not running.")
+    return False
+
 def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, lastGameID):
     button1Link = None
     completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
@@ -66,6 +76,7 @@ def update_presence(RPC, data, game_data, start_time, username, achievementData,
             buttons=[button1Link, button2Link]
         )
     except:
+        print(Fore.RED + "Failed to update presence.")
         pass
         
 
@@ -112,8 +123,16 @@ def main():
 
 
     RPC = Presence(client_id)
+    print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
     print(Fore.CYAN + "Connecting to Discord App...")
+
+    while(isDiscordRunning() == False):
+        print(Fore.RED + "Retrying in 10 seconds...")
+        time.sleep(10)
+
+    time.sleep(5)
     RPC.connect()
+
     print(Fore.MAGENTA + "Connected!")
     start_time = int(time.time())
 
