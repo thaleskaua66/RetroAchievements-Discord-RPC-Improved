@@ -89,7 +89,8 @@ def setup_config():
     api = input()  
 
     data = "[DISCORD]\nusername = "+str(usr)+"\napi_key = "+str(api)+"\nclient_id = -1"
-    configuring = "\n\n[SETTINGS]\ndisplayUsername = True"
+    configuring = "\n\n[SETTINGS]\ndisplayUsername = True\nkeepRunning = False"
+    
 
     config_file.write(data + configuring)
     config_file.close()
@@ -114,6 +115,7 @@ def main():
     username = config.get('DISCORD', 'username')
     api_key = config.get('DISCORD', 'api_key')
     displayUsername = config.getboolean('SETTINGS', 'displayUsername')
+    keepRunning = config.getboolean('SETTINGS', 'keepRunning')
 
     client_id = "1320752097989234869"
 
@@ -167,32 +169,37 @@ def main():
             print("Game data: \n", game_data)
             print("Data: \n", data)
 
-        # Checks whether to show the presence or clear it
-        if(rpcInitialRun and counter >= 1 and temp1 != data['RichPresenceMsg']):
-            # print("Enters condition 0: Initial run and data has changed")
-            rpcInitialRun = False
+        if(keepRunning == False): # This will only execute if the user chooses to keep the presence running without idling mode (This function is still under development)
+            # Checks whether to show the presence or clear it
+            if(rpcInitialRun and counter >= 1 and temp1 != data['RichPresenceMsg']):
+                # print("Enters condition 0: Initial run and data has changed")
+                rpcInitialRun = False
 
-        if(rpcIsOpen == True and temp1 != data['RichPresenceMsg']):
-            # print("Enters condition 1: RPC is open and data has changed")
+            if(rpcIsOpen == True and temp1 != data['RichPresenceMsg']):
+                # print("Enters condition 1: RPC is open and data has changed")
+                update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+                counter = 1
+
+            if(rpcIsOpen == False and rpcInitialRun == False and temp1 != data['RichPresenceMsg']):
+                # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
+                start_time = int(time.time())
+                update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
+                rpcIsOpen = True 
+                counter = 1
+            elif(rpcIsOpen == True and counter >= countLimit and temp1 == data['RichPresenceMsg']):
+                # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
+                RPC.clear()
+                rpcIsOpen = False
+
+            # print("At this point, counter is now: ", counter)
+                
+            temp1 = data['RichPresenceMsg']
+            counter += 1
+        else:
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
-            counter = 1
+            # print("RPC starts and will keep running... Presence is now updated.")
 
-        if(rpcIsOpen == False and rpcInitialRun == False and temp1 != data['RichPresenceMsg']):
-            # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
-            start_time = int(time.time())
-            update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
-            rpcIsOpen = True 
-            counter = 1
-        elif(rpcIsOpen == True and counter >= countLimit and temp1 == data['RichPresenceMsg']):
-            # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
-            RPC.clear()
-            rpcIsOpen = False
-
-        # print("At this point, counter is now: ", counter)
-            
-        temp1 = data['RichPresenceMsg']
-        counter += 1
-
+        # print("Discord Presence: ", data['RichPresenceMsg'])
         time.sleep(15)
         
 if __name__ == "__main__":
