@@ -99,7 +99,6 @@ def main():
     counter = 0
     rpcIsOpen = False
     temp1 = None
-    temp2 = None
     countLimit = 120
     rpcInitialRun = True
 
@@ -169,22 +168,22 @@ def main():
             print("Data: \n", data)
 
         # Checks whether to show the presence or clear it
-        if(rpcInitialRun and counter >= 1 and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+        if(rpcInitialRun and counter >= 1 and temp1 != data['RichPresenceMsg']):
             # print("Enters condition 0: Initial run and data has changed")
             rpcInitialRun = False
 
-        if(rpcIsOpen == True and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+        if(rpcIsOpen == True and temp1 != data['RichPresenceMsg']):
             # print("Enters condition 1: RPC is open and data has changed")
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
             counter = 1
 
-        if(rpcIsOpen == False and rpcInitialRun == False and (temp1 != data['RichPresenceMsg'] or temp2 != achievementData['NumAwardedToUser'])):
+        if(rpcIsOpen == False and rpcInitialRun == False and temp1 != data['RichPresenceMsg']):
             # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
             start_time = int(time.time())
             update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
             rpcIsOpen = True 
             counter = 1
-        elif(rpcIsOpen == True and counter >= countLimit and (temp1 == data['RichPresenceMsg'] or temp2 == achievementData['NumAwardedToUser'])):
+        elif(rpcIsOpen == True and counter >= countLimit and temp1 == data['RichPresenceMsg']):
             # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
             RPC.clear()
             rpcIsOpen = False
@@ -192,7 +191,6 @@ def main():
         # print("At this point, counter is now: ", counter)
             
         temp1 = data['RichPresenceMsg']
-        temp2 = achievementData['NumAwardedToUser']
         counter += 1
 
         time.sleep(15)
