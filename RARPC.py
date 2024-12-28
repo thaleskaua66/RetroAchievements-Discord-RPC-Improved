@@ -1,4 +1,3 @@
-import argparse
 from colorama import Fore, Style, init
 import configparser
 from datetime import datetime, timezone
@@ -38,11 +37,8 @@ def getUserRecentlyPlayedGame(api_key, username, number_of_results):
 def timeDifferenceFromNow(timeStamp):
     current_time = datetime.now(timezone.utc)
     target_time = datetime.strptime(timeStamp, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-    differenceInSeconds = abs((target_time - current_time).total_seconds())
-    return int(differenceInSeconds)
-
-def minutesToSeconds(minutes):
-    return minutes * 60
+    differenceInMinutes = abs((target_time - current_time).total_seconds() / 60)
+    return int(differenceInMinutes)
 
 def isDiscordRunning():
     # Check if discord.exe is in the list of running processes
@@ -83,15 +79,30 @@ def update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, sta
 def setup_config():
     config_file = open("config.ini","w")
     print(f'Enter RetroAchievements username: ')
-    usr = input()
+    usr = str(input())
     print(f'Enter RetroAchievements api_key: ')
-    api = input()  
+    api = str(input())
 
-    data = "[DISCORD]\nusername = "+str(usr)+"\napi_key = "+str(api)+"\nclient_id = -1"
-    configuring = "\n\n[SETTINGS]\ndisplayUsername = True\nkeepRunning = False"
-    
+    data = f"""
+[DISCORD]
+username = {usr}
+api_key = {api}
 
-    config_file.write(data + configuring)
+[SETTINGS]
+# If set to True, the username will be displayed in the presence. If False, the username won't be displayed.
+displayUsername = True
+
+# If set to True, the presence won't timeout unless you stop the script. If False, the presence will timeout after a certain time.
+keepRunning = False
+
+# This is the time in minutes after which the presence will be cleared if keepRunning is set to False
+timeoutInMinutes = 30
+
+# This is the time in seconds after which the presence will be updated
+refreshRateInSeconds = 15
+    """
+
+    config_file.write(data)
     config_file.close()
 
 def main():
@@ -111,6 +122,8 @@ def main():
     api_key = config.get('DISCORD', 'api_key')
     isDisplayUsername = config.getboolean('SETTINGS', 'displayUsername')
     keepRunning = config.getboolean('SETTINGS', 'keepRunning')
+    timeoutInMinutes = config.getint('SETTINGS', 'timeoutInMinutes')
+    refreshRateInSeconds = config.getint('SETTINGS', 'refreshRateInSeconds')
 
     client_id = "1320752097989234869"
 
@@ -125,6 +138,10 @@ def main():
     RPC.connect()
 
     print(Fore.MAGENTA + "Connected!")
+
+    print("Timeout in minutes: ", timeoutInMinutes)
+    print("Refresh rate in seconds: ", refreshRateInSeconds)
+
     start_time = int(time.time())
 
     while True:
@@ -137,7 +154,7 @@ def main():
         recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
 
         if(keepRunning == False):
-            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < minutesToSeconds(1)): # The one here should be edited
+            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes): # The one here should be edited
                 # print("Updating presence...")
                 if(isRPCRunning == False):
                     start_time = int(time.time())
@@ -150,7 +167,7 @@ def main():
         else:
             update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
 
-        time.sleep(15)
+        time.sleep(refreshRateInSeconds)
         
 if __name__ == "__main__":
     main()
