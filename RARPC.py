@@ -1,7 +1,7 @@
 import argparse
 from colorama import Fore, Style, init
 import configparser
-from datetime import datetime
+from datetime import datetime, timezone
 from pprint import pprint
 from pypresence import Presence 
 import re
@@ -12,14 +12,6 @@ import time
 import warnings
 from allSystems import consoleIcons
 import psutil
-
-global counter
-global RPC
-global rpcIsOpen
-global temp1, temp2
-global start_time
-global countLimit
-global rpcInitialRun
 
 init(autoreset=True)
 
@@ -35,13 +27,22 @@ def sanitize_console_name(console_name):
     sanitized_name = re.sub('[^0-9a-zA-Z]+', '', console_name)
     return sanitized_name.lower()
 
-#RA Games don't all have full dates, but they follow a consistent pattern where the year is the last token:
-#-- Year 
-#-- Month Year
-#-- Month Day, Year 
-def get_release_year(release_date):
-    tokens = release_date.split(' ')
-    return tokens[len(tokens)-1]
+def getUserProfile(api_key, username):
+    data = get_data(f"https://retroachievements.org/API/API_GetUserProfile.php?y={api_key}&u={username}")
+    return data
+
+def getUserRecentlyPlayedGame(api_key, username, number_of_results):
+    data = get_data(f"https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?y={api_key}&u={username}&c={number_of_results}")
+    return data[0]
+
+def timeDifferenceFromNow(timeStamp):
+    current_time = datetime.now(timezone.utc)
+    target_time = datetime.strptime(timeStamp, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+    differenceInSeconds = abs((target_time - current_time).total_seconds())
+    return int(differenceInSeconds)
+
+def minutesToSeconds(minutes):
+    return minutes * 60
 
 def isDiscordRunning():
     # Check if discord.exe is in the list of running processes
@@ -52,28 +53,26 @@ def isDiscordRunning():
     print(Fore.RED + "Discord is not running.")
     return False
 
-def update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, lastGameID):
+def update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time):
     button1Link = None
-    completionAchievement = int((achievementData['NumAwardedToUser'] / achievementData['NumAchievements']) * 100)
-    largeImageHoverText = f"{achievementData['NumAwardedToUser']} of {achievementData['NumAchievements']} achieved🏆| {completionAchievement} %"
-    if(displayUsername):
-        button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{username}"}
+    completionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
+    largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {completionPercentage} %"
+    if(isDisplayUsername):
+        button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{userProfile['User']}"}
     else:
         button1Link = {"label": "What is RetroAchievements❓", "url": "https://retroachievements.org"}
     
-    button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{lastGameID}"}
+    button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{recentlyPlayedGame['GameID']}"}
     
     try:
         RPC.update(
-            #state=game_data['GameTitle'],
-            details=game_data['Title'],
-            state=data['RichPresenceMsg'],
+            details=recentlyPlayedGame['Title'],
+            state=userProfile['RichPresenceMsg'],
             start=start_time,
-            large_image=f"https://media.retroachievements.org{game_data['GameIcon']}",
-            # large_text=f"Released {game_data['Released']}, Developed by {game_data['Developer']}, Published by {game_data['Publisher']}",
+            large_image=f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
             large_text = largeImageHoverText,
-            small_image= consoleIcons.get(game_data['ConsoleID']),
-            small_text=game_data['ConsoleName'],
+            small_image= consoleIcons.get(recentlyPlayedGame['ConsoleID']),
+            small_text=recentlyPlayedGame['ConsoleName'],
             buttons=[button1Link, button2Link]
         )
     except:
@@ -96,12 +95,8 @@ def setup_config():
     config_file.close()
 
 def main():
-    # Global variables SET
-    counter = 0
-    rpcIsOpen = False
-    temp1 = None
-    countLimit = 120
-    rpcInitialRun = True
+    # GLOBAL SET
+    isRPCRunning = False
 
     print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
 
@@ -114,18 +109,10 @@ def main():
     
     username = config.get('DISCORD', 'username')
     api_key = config.get('DISCORD', 'api_key')
-    displayUsername = config.getboolean('SETTINGS', 'displayUsername')
+    isDisplayUsername = config.getboolean('SETTINGS', 'displayUsername')
     keepRunning = config.getboolean('SETTINGS', 'keepRunning')
 
     client_id = "1320752097989234869"
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--debug', action='store_true', help='Print debug information')
-    parser.add_argument('--fetch', type=int, default=15, help='Time to sleep before fetches in seconds')
-    args = parser.parse_args()
-
-    profile_url = f"https://retroachievements.org/API/API_GetUserProfile.php?u={username}&y={api_key}&z={username}"
-
 
     RPC = Presence(client_id)
     print(Fore.CYAN + "Connecting to Discord App...")
@@ -141,65 +128,28 @@ def main():
     start_time = int(time.time())
 
     while True:
-        # print(Fore.CYAN + f"Fetching {username}'s RetroAchievements activity...")
         warnings.filterwarnings("ignore")
-        data = get_data(profile_url)
 
-        achievement_url = f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?z={username}&y={api_key}&u={username}&g={data['LastGameID']}"
+        # For getting the rich presence message
+        userProfile = getUserProfile(api_key, username)
 
-        achievementData = get_data(achievement_url)
-        if data is None:
-            break
+        # For getting the recently played game
+        recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
 
-        # print(Fore.MAGENTA + f"Result: {data['RichPresenceMsg']}")
-
-        game_params = f"?z={username}&y={api_key}&i={data['LastGameID']}"
-        # print("Last game ID is: ", data['LastGameID'])
-        game_url = f"https://retroachievements.org/API/API_GetGame.php{game_params}"
-        # print(Fore.CYAN + "Fetching game data...")
-        game_data = get_data(game_url)
-        if game_data is None:
-            break
-
-        # print(Fore.MAGENTA + f"Result: {game_data['GameTitle']}")
-
-        if args.debug:
-            print(Fore.YELLOW + "Debug game data:")
-            pprint(game_data)
-            print("Game data: \n", game_data)
-            print("Data: \n", data)
-
-        if(keepRunning == False): # This will only execute if the user chooses to keep the presence running without idling mode (This function is still under development)
-            # Checks whether to show the presence or clear it
-            if(rpcInitialRun and counter >= 1 and temp1 != data['RichPresenceMsg']):
-                # print("Enters condition 0: Initial run and data has changed")
-                rpcInitialRun = False
-
-            if(rpcIsOpen == True and temp1 != data['RichPresenceMsg']):
-                # print("Enters condition 1: RPC is open and data has changed")
-                update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
-                counter = 1
-
-            if(rpcIsOpen == False and rpcInitialRun == False and temp1 != data['RichPresenceMsg']):
-                # print("Enters condition 2: RPC is closed and data has changed. RPC now turns on.")
-                start_time = int(time.time())
-                update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
-                rpcIsOpen = True 
-                counter = 1
-            elif(rpcIsOpen == True and counter >= countLimit and temp1 == data['RichPresenceMsg']):
-                # print("Enters condition 3: RPC is open and data has not changed for a certain time period. RPC now turns off.")
+        if(keepRunning == False):
+            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < minutesToSeconds(1)): # The one here should be edited
+                # print("Updating presence...")
+                if(isRPCRunning == False):
+                    start_time = int(time.time())
+                update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
+                isRPCRunning = True
+            else:
+                # print("Presence cleared...")
                 RPC.clear()
-                rpcIsOpen = False
-
-            # print("At this point, counter is now: ", counter)
-                
-            temp1 = data['RichPresenceMsg']
-            counter += 1
+                isRPCRunning = False
         else:
-            update_presence(RPC, data, game_data, start_time, username, achievementData, displayUsername, data['LastGameID'])
-            # print("RPC starts and will keep running... Presence is now updated.")
+            update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
 
-        # print("Discord Presence: ", data['RichPresenceMsg'])
         time.sleep(15)
         
 if __name__ == "__main__":
