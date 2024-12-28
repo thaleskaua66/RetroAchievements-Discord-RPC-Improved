@@ -27,13 +27,16 @@ _Note: This function is still under development and isn't fully functional yet. 
 - A first button that redirects to the user's RA profile. _(Don't worry, I made an option to turn this off)_
 - If the username display is turned off, the first button will have the link of the RetroAchievements website instead.
 - A second button that redirects to the current game info inside the RetroAchievements website. 
-- Not having updates within the current game status for a certain period of time would lead to RP idling. This helps to prevent unintended up-counting of elapsed time. _(Still have occasional issues)_
-- Making movements that triggers the game status would display the Discord RP again. _(Still have occasional issues)_
+- Discord's Rich Presence will get cleared when there are no RA activities within 30 minutes (default). _(You can modify this duration in `config.ini` file)_
 - Optimized game title.
 - Optimized game status.
 
-If you want to keep the rich presence running, you can just edit the `config.ini` file and modify the value. By default, it is set to `False`. Turn this to `True` if you want to keep it running without idling.
+If you want to keep the rich presence running, you can just edit the `config.ini` file and modify the `keepRunning` value. By default, it is set to `False`. Turn this to `True` if you want to keep it running without idling.
 
 ### How to turn off username display?
 1. If ever you don't want your username to have a redirection button on your Discord RP, just edit the `config.ini` file and modify the value inside the `displayUsername` to `False`. By default, this is `True`. _Notice the capital letters in the True and False as wrong cases may result to an error._
-2. After this, you can just close the `run.bat` file and open it again to reflect changes. 
+2. Save the changes you made, close the `run.bat` file, and open it again to reflect changes.
+
+All the configurations inside the `config.ini` file can be modified based on your preferences. Just make sure to follow the proper syntax to avoid errors. 
+
+
