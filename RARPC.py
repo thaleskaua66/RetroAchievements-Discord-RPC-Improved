@@ -95,8 +95,9 @@ displayUsername = True
 # If set to True, the presence won't timeout unless you stop the script. If False, the presence will timeout after a certain time.
 keepRunning = False
 
-# This is the time in minutes after which the presence will be cleared if keepRunning is set to False
-timeoutInMinutes = 30
+# This is the time in minutes after which the presence will be cleared after you quitted playing (if keepRunning is set to False).
+# Increase the number if your game device has an unstable internet connection. (This is to prevent the presence from being cleared when you're still playing)
+timeoutInMinutes = 2
 
 # This is the time in seconds after which the presence will be updated
 refreshRateInSeconds = 15
@@ -154,7 +155,7 @@ def main():
         recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
 
         if(keepRunning == False):
-            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes): # The one here should be edited
+            if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes):
                 # print("Updating presence...")
                 if(isRPCRunning == False):
                     start_time = int(time.time())
