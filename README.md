@@ -27,7 +27,7 @@ _Note: This function is still under development and isn't fully functional yet. 
 - A first button that redirects to the user's RA profile. _(Don't worry, I made an option to turn this off)_
 - If the username display is turned off, the first button will have the link of the RetroAchievements website instead.
 - A second button that redirects to the current game info inside the RetroAchievements website. 
-- Discord's Rich Presence will get cleared when there are no RA activities within 30 minutes (default). _(You can modify this duration in `config.ini` file)_
+- Discord's Rich Presence will get cleared when you quit the game within 2 minutes (default). _(You can modify this duration in `config.ini` file)_
 - Optimized game title.
 - Optimized game status.
 
@@ -39,4 +39,6 @@ If you want to keep the rich presence running, you can just edit the `config.ini
 
 All the configurations inside the `config.ini` file can be modified based on your preferences. Just make sure to follow the proper syntax to avoid errors. 
 
-
+### Things to keep in mind:
+- Always open the Discord App first before running the script.
+- Restart the Rich Presence from running when switching accounts.
