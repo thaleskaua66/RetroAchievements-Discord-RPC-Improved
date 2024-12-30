@@ -14,7 +14,7 @@ import psutil
 
 init(autoreset=True)
 
-def get_data(url):
+def getData(url):
     response = requests.get(url)
     if response.status_code == 200:
         return response.json()
@@ -22,16 +22,12 @@ def get_data(url):
         print(Fore.RED + f"Failed to fetch data from {url}, status code: {response.status_code}")
         return None
 
-def sanitize_console_name(console_name):
-    sanitized_name = re.sub('[^0-9a-zA-Z]+', '', console_name)
-    return sanitized_name.lower()
-
 def getUserProfile(api_key, username):
-    data = get_data(f"https://retroachievements.org/API/API_GetUserProfile.php?y={api_key}&u={username}")
+    data = getData(f"https://retroachievements.org/API/API_GetUserProfile.php?y={api_key}&u={username}")
     return data
 
 def getUserRecentlyPlayedGame(api_key, username, number_of_results):
-    data = get_data(f"https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?y={api_key}&u={username}&c={number_of_results}")
+    data = getData(f"https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?y={api_key}&u={username}&c={number_of_results}")
     return data[0]
 
 def timeDifferenceFromNow(timeStamp):
@@ -49,7 +45,7 @@ def isDiscordRunning():
     print(Fore.RED + "Discord is not running.")
     return False
 
-def update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time):
+def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time):
     button1Link = None
     completionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
     largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {completionPercentage} %"
@@ -159,14 +155,14 @@ def main():
                 # print("Updating presence...")
                 if(isRPCRunning == False):
                     start_time = int(time.time())
-                update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
+                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
                 isRPCRunning = True
             else:
                 # print("Presence cleared...")
                 RPC.clear()
                 isRPCRunning = False
         else:
-            update_presence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
+            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
 
         time.sleep(refreshRateInSeconds)
         
