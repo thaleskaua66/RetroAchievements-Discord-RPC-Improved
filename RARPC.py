@@ -78,13 +78,11 @@ def isDiscordRunning():
     print(Fore.RED + "Discord is not running.")
     return False
 
-def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, isShowBeatenOrCompleted, start_time, gameBeatenAchievements):
+def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements):
     button1Link = None
-    largeImageHoverText = None
     gameCompletionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
     gameBeatenPercentage = int((gameBeatenAchievements[0] / gameBeatenAchievements[1]) * 100)
-    showCompleted = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {gameCompletionPercentage} %"
-    showBeaten = f"{gameBeatenAchievements[0]} of {gameBeatenAchievements[1]} beaten🏆| {gameBeatenPercentage} %"
+    largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {gameCompletionPercentage} %"
 
     if(isDisplayUsername):
         button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{userProfile['User']}"}
@@ -92,23 +90,17 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, isSh
         button1Link = {"label": "What is RetroAchievements❓", "url": "https://retroachievements.org"}
     
     button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{recentlyPlayedGame['GameID']}"}
-
-    # Checks if the presence will show the game beaten percentage or the overall achievements percentage
-    if(isShowBeatenOrCompleted):
-        largeImageHoverText = showBeaten
-    else:
-        largeImageHoverText = showCompleted
     
     try:
         RPC.update(
-            details=recentlyPlayedGame['Title'],
-            state=userProfile['RichPresenceMsg'],
-            start=start_time,
-            large_image=f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
+            details = recentlyPlayedGame['Title'],
+            state = f"{userProfile['RichPresenceMsg']} | Story Progress: {gameBeatenPercentage} %",
+            start = start_time,
+            large_image = f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
             large_text = largeImageHoverText,
-            small_image= consoleIcons.get(recentlyPlayedGame['ConsoleID']),
-            small_text=recentlyPlayedGame['ConsoleName'],
-            buttons=[button1Link, button2Link]
+            small_image = consoleIcons.get(recentlyPlayedGame['ConsoleID']),
+            small_text = recentlyPlayedGame['ConsoleName'],
+            buttons = [button1Link, button2Link]
         )
     except:
         print(Fore.RED + "Failed to update presence.")
@@ -130,9 +122,6 @@ api_key = {api}
 [SETTINGS]
 # If set to True, the username will be displayed in the presence. If False, the username won't be displayed.
 displayUsername = True
-
-# If set to True, the presence will show just the game beaten percentage. If False, it will show the overall achievements percentage instead.
-showBeatenOrCompleted = True
 
 # If set to True, the presence won't timeout unless you stop the script. If False, the presence will timeout after a certain time.
 keepRunning = False
@@ -164,7 +153,6 @@ def main():
     username = config.get('DISCORD', 'username')
     api_key = config.get('DISCORD', 'api_key')
     isDisplayUsername = config.getboolean('SETTINGS', 'displayUsername')
-    isShowBeatenOrCompleted = config.getboolean('SETTINGS', 'showBeatenOrCompleted')
     keepRunning = config.getboolean('SETTINGS', 'keepRunning')
     timeoutInMinutes = config.getint('SETTINGS', 'timeoutInMinutes')
     refreshRateInSeconds = config.getint('SETTINGS', 'refreshRateInSeconds')
@@ -206,14 +194,14 @@ def main():
                 # print("Updating presence...")
                 if(isRPCRunning == False):
                     start_time = int(time.time())
-                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, isShowBeatenOrCompleted, start_time, gameBeatenAchievements)
+                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
                 isRPCRunning = True
             else:
                 # print("Presence cleared...")
                 RPC.clear()
                 isRPCRunning = False
         else:
-            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, isShowBeatenOrCompleted, start_time, gameBeatenAchievements)
+            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
 
         time.sleep(refreshRateInSeconds)
         
