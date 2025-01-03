@@ -34,7 +34,7 @@ def getGameInfoAndUserProgress(api_key, username, game_id):
     data = getData(f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?y={api_key}&u={username}&g={game_id}")
     return data
 
-# This function returns the completion percentage of the game. Returns a list [totalAchievementsAchieved, totalAchievements]
+# This function returns a list [totalAchievementsAchieved, totalAchievements]. Both of these are progression type and one win condition achievement.
 def getBeatenAchievements(gameInfoAndUserProgress):
     totalProgressionAchievements = 0
     totalWinConditionAchievements = 0
