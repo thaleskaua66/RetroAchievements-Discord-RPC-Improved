@@ -2,7 +2,9 @@
 ## Features:
 - The game icon is displayed on the Discord's RP.
 - The console currently being played is also displayed. 
-- Hovering over the game icon displays the user's achievement status about the current game. _(e.g, 32 of 148 achieved | 21 %)_
+- *Option 1*: Hovering over the game icon displays the user's **overall achievement** status about the current game. _(e.g, 32 of 148 achieved | 21 %)_
+- *Option 2*: Hovering over the game icon display the user's **progression achievement** status about the current game. _(e.g 12 of 25 beaten | 48 %)_
+- Options 1 and 2 for hovering over the game icon can be modified inside the `config.ini` file. 
 - A first button that redirects to the user's RA profile. _(Don't worry, I made an option to turn this off)_
 - If the username display is turned off, the first button will have the link of the RetroAchievements website instead.
 - A second button that redirects to the current game info inside the RetroAchievements website. 
