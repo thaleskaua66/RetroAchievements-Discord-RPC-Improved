@@ -30,6 +30,39 @@ def getUserRecentlyPlayedGame(api_key, username, number_of_results):
     data = getData(f"https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?y={api_key}&u={username}&c={number_of_results}")
     return data[0]
 
+def getGameInfoAndUserProgress(api_key, username, game_id):
+    data = getData(f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?y={api_key}&u={username}&g={game_id}")
+    return data
+
+# This function returns the completion percentage of the game
+def getGameBeatenPercentage(gameInfoAndUserProgress):
+    totalProgressionAchievements = 0
+    totalWinConditionAchievements = 0
+    totalProgressionAchieved = 0
+    totalWinConditionAchieved = 0
+    winConditionAchieved = 0
+
+    for achievement in gameInfoAndUserProgress['Achievements'].values():
+        if(achievement['type'] == "progression"):
+            totalProgressionAchievements += 1 # Counts the total number of progression achievements
+            if 'DateEarned' in achievement:
+                totalProgressionAchieved += 1 # Counts the total number of progression achievements achieved
+        elif(achievement['type'] == "win_condition"):
+            totalWinConditionAchievements += 1 # Counts the total number of win condition achievements
+            if 'DateEarned' in achievement:
+                totalWinConditionAchieved += 1 # Counts the total number of win condition achievements achieved
+
+    if totalWinConditionAchieved > 0:
+        winConditionAchieved = 1
+    else:
+        winConditionAchieved = 0
+
+    totalAchievements = totalProgressionAchievements + 1 # Adds 1 since the game is considered beaten if the user have just at least 1 win condition achievement
+    totalAchievementsAchieved = totalProgressionAchieved + winConditionAchieved
+    gameBeatenPercentage = (totalAchievementsAchieved / totalAchievements) * 100 # Gets percentage
+    return int(gameBeatenPercentage)
+
+
 def timeDifferenceFromNow(timeStamp):
     current_time = datetime.now(timezone.utc)
     target_time = datetime.strptime(timeStamp, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
@@ -45,10 +78,12 @@ def isDiscordRunning():
     print(Fore.RED + "Discord is not running.")
     return False
 
-def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time):
+def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenPercentage):
     button1Link = None
-    completionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
-    largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {completionPercentage} %"
+    gameCompletionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
+    largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {gameCompletionPercentage} %"
+    largeImageHoverText2 = f"Game Completion: {gameBeatenPercentage}%"
+
     if(isDisplayUsername):
         button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{userProfile['User']}"}
     else:
@@ -62,7 +97,7 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
             state=userProfile['RichPresenceMsg'],
             start=start_time,
             large_image=f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
-            large_text = largeImageHoverText,
+            large_text = largeImageHoverText2,
             small_image= consoleIcons.get(recentlyPlayedGame['ConsoleID']),
             small_text=recentlyPlayedGame['ConsoleName'],
             buttons=[button1Link, button2Link]
@@ -150,19 +185,23 @@ def main():
         # For getting the recently played game
         recentlyPlayedGame = getUserRecentlyPlayedGame(api_key, username, 1)
 
+        # Getting achievements data
+        gameInfoAndUserProgress = getGameInfoAndUserProgress(api_key, username, recentlyPlayedGame['GameID'])
+        gameBeatenPercentage = getGameBeatenPercentage(gameInfoAndUserProgress)
+
         if(keepRunning == False):
             if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes):
                 # print("Updating presence...")
                 if(isRPCRunning == False):
                     start_time = int(time.time())
-                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
+                updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenPercentage)
                 isRPCRunning = True
             else:
                 # print("Presence cleared...")
                 RPC.clear()
                 isRPCRunning = False
         else:
-            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time)
+            updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenPercentage)
 
         time.sleep(refreshRateInSeconds)
         
