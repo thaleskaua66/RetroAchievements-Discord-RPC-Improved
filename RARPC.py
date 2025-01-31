@@ -105,6 +105,10 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
         )
     except:
         print(Fore.RED + "Failed to update presence.")
+        while(isDiscordRPCAvailable(RPC) == False):
+            print(Fore.RED + "Retrying in 10 seconds...")
+            time.sleep(10)
+        RPC.connect()
         pass
         
 
