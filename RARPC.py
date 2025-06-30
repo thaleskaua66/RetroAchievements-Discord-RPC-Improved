@@ -84,6 +84,7 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
     gameCompletionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
     gameBeatenPercentage = int((gameBeatenAchievements[0] / gameBeatenAchievements[1]) * 100)
     largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {gameCompletionPercentage} %"
+    storyProgressText = f" | Story Progress: {gameBeatenPercentage} %"
 
     if(isDisplayUsername):
         button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{userProfile['User']}"}
@@ -91,11 +92,14 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
         button1Link = {"label": "What is RetroAchievements❓", "url": "https://retroachievements.org"}
     
     button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{recentlyPlayedGame['GameID']}"}
+
+    if gameBeatenPercentage == 0:
+        storyProgressText = ""
     
     try:
         RPC.update(
             details = recentlyPlayedGame['Title'],
-            state = f"{userProfile['RichPresenceMsg']} | Story Progress: {gameBeatenPercentage} %",
+            state = f"{userProfile['RichPresenceMsg']}{storyProgressText}",
             start = start_time,
             large_image = f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
             large_text = largeImageHoverText,
