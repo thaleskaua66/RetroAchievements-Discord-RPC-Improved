@@ -43,11 +43,11 @@ def getBeatenAchievements(gameInfoAndUserProgress):
     winConditionAchieved = 0
 
     for achievement in gameInfoAndUserProgress['Achievements'].values():
-        if(achievement['type'] == "progression"):
+        if(achievement['Type'] == "progression"):
             totalProgressionAchievements += 1 # Counts the total number of progression achievements
             if 'DateEarned' in achievement:
                 totalProgressionAchieved += 1 # Counts the total number of progression achievements achieved
-        elif(achievement['type'] == "win_condition"):
+        elif(achievement['Type'] == "win_condition"):
             totalWinConditionAchievements += 1 # Counts the total number of win condition achievements
             if 'DateEarned' in achievement:
                 totalWinConditionAchieved += 1 # Counts the total number of win condition achievements achieved
