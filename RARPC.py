@@ -14,24 +14,37 @@ import psutil
 
 init(autoreset=True)
 
+def log_with_timestamp(message, color=Fore.RESET):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(color + f"[{timestamp}] {message}")
+
 def getData(url):
-    response = requests.get(url)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
         return response.json()
-    else:
-        print(Fore.RED + f"Failed to fetch data from {url}, status code: {response.status_code}")
-        return None
+    except requests.exceptions.HTTPError as http_err:
+        log_with_timestamp(f"HTTP error occurred: {http_err}", Fore.RED)
+    except Exception as err:
+        log_with_timestamp(f"Other error occurred: {err}", Fore.RED)
+    return None
 
 def getUserProfile(api_key, username):
     data = getData(f"https://retroachievements.org/API/API_GetUserProfile.php?y={api_key}&u={username}")
+    if data is None:
+        raise ValueError("Failed to fetch user profile data.")
     return data
 
 def getUserRecentlyPlayedGame(api_key, username, number_of_results):
     data = getData(f"https://retroachievements.org/API/API_GetUserRecentlyPlayedGames.php?y={api_key}&u={username}&c={number_of_results}")
+    if data is None or len(data) == 0:
+        raise ValueError("Failed to fetch recently played game data.")
     return data[0]
 
 def getGameInfoAndUserProgress(api_key, username, game_id):
     data = getData(f"https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?y={api_key}&u={username}&g={game_id}")
+    if data is None:
+        raise ValueError("Failed to fetch game info and user progress data.")
     return data
 
 # This function returns a list [totalAchievementsAchieved, totalAchievements]. Both of these are progression type and one win condition achievement.
@@ -43,14 +56,16 @@ def getBeatenAchievements(gameInfoAndUserProgress):
     winConditionAchieved = 0
 
     for achievement in gameInfoAndUserProgress['Achievements'].values():
-        if(achievement['Type'] == "progression"):
-            totalProgressionAchievements += 1 # Counts the total number of progression achievements
+        ach_type = achievement.get('type')  # usa .get para não quebrar
+        if ach_type == "progression":
+            totalProgressionAchievements += 1
             if 'DateEarned' in achievement:
-                totalProgressionAchieved += 1 # Counts the total number of progression achievements achieved
-        elif(achievement['Type'] == "win_condition"):
-            totalWinConditionAchievements += 1 # Counts the total number of win condition achievements
+                totalProgressionAchieved += 1
+        elif ach_type == "win_condition":
+            totalWinConditionAchievements += 1
             if 'DateEarned' in achievement:
-                totalWinConditionAchieved += 1 # Counts the total number of win condition achievements achieved
+                totalWinConditionAchieved += 1
+
 
     if totalWinConditionAchieved > 0:
         winConditionAchieved = 1
@@ -73,10 +88,10 @@ def isDiscordRPCAvailable(RPC):
     try:
         RPC.connect()
         RPC.close()
-        print(Fore.GREEN + "Discord RPC is available.")
+        log_with_timestamp("Discord RPC is available.", Fore.GREEN)
         return True
-    except:
-        print(Fore.RED + "Discord RPC is not available.")
+    except Exception as e:
+        log_with_timestamp(f"Discord RPC is not available: {e}", Fore.RED)
         return False
 
 def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements):
@@ -84,7 +99,6 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
     gameCompletionPercentage = int((recentlyPlayedGame['NumAchieved'] / recentlyPlayedGame['NumPossibleAchievements']) * 100)
     gameBeatenPercentage = int((gameBeatenAchievements[0] / gameBeatenAchievements[1]) * 100)
     largeImageHoverText = f"{recentlyPlayedGame['NumAchieved']} of {recentlyPlayedGame['NumPossibleAchievements']} achieved🏆| {gameCompletionPercentage} %"
-    storyProgressText = f" | Story Progress: {gameBeatenPercentage} %"
 
     if(isDisplayUsername):
         button1Link = {"label": "Visit Profile 👤", "url": f"https://retroachievements.org/user/{userProfile['User']}"}
@@ -92,14 +106,11 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
         button1Link = {"label": "What is RetroAchievements❓", "url": "https://retroachievements.org"}
     
     button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{recentlyPlayedGame['GameID']}"}
-
-    if gameBeatenPercentage == 0:
-        storyProgressText = ""
     
     try:
         RPC.update(
             details = recentlyPlayedGame['Title'],
-            state = f"{userProfile['RichPresenceMsg']}{storyProgressText}",
+            state = f"{userProfile['RichPresenceMsg']} | Story Progress: {gameBeatenPercentage} %",
             start = start_time,
             large_image = f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
             large_text = largeImageHoverText,
@@ -108,11 +119,7 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
             buttons = [button1Link, button2Link]
         )
     except:
-        print(Fore.RED + "Failed to update presence.")
-        while(isDiscordRPCAvailable(RPC) == False):
-            print(Fore.RED + "Retrying in 10 seconds...")
-            time.sleep(10)
-        RPC.connect()
+        log_with_timestamp("Failed to update presence.", Fore.RED)
         pass
         
 
@@ -155,10 +162,10 @@ def main():
     # GLOBAL SET
     isRPCRunning = False
 
-    print(Fore.YELLOW + "HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n")
+    log_with_timestamp("HOW TO USE:\n1. Open Discord app.\n2. Run this script.\nDiscord app should be running first before this script.\n", Fore.YELLOW)
 
     if(os.path.exists('config.ini') == False):
-        print(Fore.YELLOW + f"Config file not found. Running first time setup...")
+        log_with_timestamp("Config file not found. Running first time setup...", Fore.YELLOW)
         setup_config()
 
     config = configparser.ConfigParser()
@@ -174,19 +181,19 @@ def main():
     client_id = os.getenv('DISCORD_CLIENT_ID', "1320752097989234869")
 
     RPC = Presence(client_id)
-    print(Fore.CYAN + "Checking Discord RPC availability...")
+    log_with_timestamp("Checking Discord RPC availability...", Fore.CYAN)
 
     while(isDiscordRPCAvailable(RPC) == False):
-        print(Fore.RED + "Retrying in 10 seconds...")
+        log_with_timestamp("Retrying in 10 seconds...", Fore.RED)
         time.sleep(10)
 
     time.sleep(5)
     RPC.connect()
 
-    print(Fore.MAGENTA + "Connected!")
+    log_with_timestamp("Connected!", Fore.MAGENTA)
 
-    print("Timeout in minutes: ", timeoutInMinutes)
-    print("Refresh rate in seconds: ", refreshRateInSeconds)
+    log_with_timestamp(f"Timeout in minutes: {timeoutInMinutes}", Fore.CYAN)
+    log_with_timestamp(f"Refresh rate in seconds: {refreshRateInSeconds}", Fore.CYAN)
 
     start_time = int(time.time())
 
@@ -206,23 +213,23 @@ def main():
 
             if(keepRunning == False):
                 if(timeDifferenceFromNow(recentlyPlayedGame['LastPlayed']) < timeoutInMinutes):
-                    # print("Updating presence...")
                     if(isRPCRunning == False):
                         start_time = int(time.time())
                     updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
                     isRPCRunning = True
                 else:
-                    # print("Presence cleared...")
                     RPC.clear()
                     isRPCRunning = False
             else:
                 updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, start_time, gameBeatenAchievements)
+        except ValueError as ve:
+            log_with_timestamp(f"Value error: {ve}", Fore.RED)
         except Exception as e:
-            print(Fore.RED + f"Error during presence update: {e}")
+            log_with_timestamp(f"Error during presence update: {e}", Fore.RED)
             isRPCRunning = False
-            print(Fore.CYAN + "Rechecking Discord RPC availability...")
+            log_with_timestamp("Rechecking Discord RPC availability...", Fore.CYAN)
             while(isDiscordRPCAvailable(RPC) == False):
-                print(Fore.RED + "Retrying in 10 seconds...")
+                log_with_timestamp("Retrying in 10 seconds...", Fore.RED)
                 time.sleep(10)
             RPC.connect()
 
