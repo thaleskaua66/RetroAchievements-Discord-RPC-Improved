@@ -1,5 +1,5 @@
 ## FORK INFO
-This fork was made to fix a bug on the file RARPC.py cause by the "type" not being found.
+This fork was made to fix two bugs on the file RARPC.py, one caused by the "type" not being found and the other one by the RPC description being over 128 characters.
 
 # RetroAchievements Discord Presence: Improved
 ## Features:
