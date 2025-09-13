@@ -108,9 +108,15 @@ def updatePresence(RPC, userProfile, recentlyPlayedGame, isDisplayUsername, star
     button2Link = {"label": "Game Info 🎮", "url": f"https://retroachievements.org/game/{recentlyPlayedGame['GameID']}"}
     
     try:
+        def truncate(text, limit=128):
+            return text if len(text) <= limit else text[:limit-3] + "..."
+
+        state_msg = f"{userProfile['RichPresenceMsg']} | Story Progress: {gameBeatenPercentage} %"
+        state_msg = truncate(state_msg, 128)
+
         RPC.update(
             details = recentlyPlayedGame['Title'],
-            state = f"{userProfile['RichPresenceMsg']} | Story Progress: {gameBeatenPercentage} %",
+            state = state_msg,
             start = start_time,
             large_image = f"https://media.retroachievements.org{recentlyPlayedGame['ImageIcon']}",
             large_text = largeImageHoverText,
