@@ -56,7 +56,7 @@ def getBeatenAchievements(gameInfoAndUserProgress):
     winConditionAchieved = 0
 
     for achievement in gameInfoAndUserProgress['Achievements'].values():
-        ach_type = achievement.get('type')  # usa .get para não quebrar
+        ach_type = achievement.get('type')  
         if ach_type == "progression":
             totalProgressionAchievements += 1
             if 'DateEarned' in achievement:
