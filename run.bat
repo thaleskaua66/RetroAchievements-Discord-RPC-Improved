@@ -1,3 +1,3 @@
 @echo off
-py RARPC.py
+python3 RARPC.py
 pause
